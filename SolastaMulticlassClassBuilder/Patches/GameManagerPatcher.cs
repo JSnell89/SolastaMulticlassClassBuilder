@@ -1,6 +1,6 @@
 using HarmonyLib;
 
-namespace SolastaAcehighFeats.Patches
+namespace SolastaMulticlassClassBuilder.Patches
 {
     class GameManagerPatcher
     {
