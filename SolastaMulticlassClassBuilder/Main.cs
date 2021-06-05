@@ -69,7 +69,7 @@ namespace SolastaMulticlassClassBuilder
 
         internal static void ModEntryPoint()
         {
-            //Wiz2/Cler3/Wiz3/Cler2 - Spellcasters don't work properly yet :(
+            //Wiz2/Cler3/Wiz3/Cler2 - Spellcasters combos don't work properly yet :(
             //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Wizard, DatabaseHelper.CharacterSubclassDefinitions.TraditionShockArcanist,
             //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
             //    { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Wizard, DatabaseHelper.CharacterSubclassDefinitions.TraditionShockArcanist, 1),
@@ -79,7 +79,7 @@ namespace SolastaMulticlassClassBuilder
             //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Wizard, DatabaseHelper.CharacterSubclassDefinitions.TraditionShockArcanist, 3),
             //    });
 
-            ////Cler2/Wiz2/Cler3/Wiz3 - Spellcasters don't work properly yet :(
+            ////Cler2/Wiz2/Cler3/Wiz3 - Spellcasters combos don't work properly yet :(
             //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle,
             //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
             //    { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle, 1),
@@ -93,7 +93,7 @@ namespace SolastaMulticlassClassBuilder
             //       new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
             //    { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Rogue, DatabaseHelper.CharacterSubclassDefinitions.RoguishDarkweaver, 9) });
 
-            ////Fighter5/Rogue1/Ranger4 - Spellcasters don't work properly yet :(
+            ////Fighter5/Rogue1/Ranger4
             //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer,
             //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
             //    { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer, 4),
@@ -125,7 +125,7 @@ namespace SolastaMulticlassClassBuilder
             //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer, 2),
             //    new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle, 2) });
 
-            //Cler8/Pal2
+            //Cler8/Pal2 - Kind of works, Doesn't add Paladin spells to know spells atm but you can smite (though level 5 smites do no damage!)
             MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle,
                 new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
                 {
@@ -133,7 +133,7 @@ namespace SolastaMulticlassClassBuilder
                   new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Paladin, DatabaseHelper.CharacterSubclassDefinitions.OathOfTirmar, 2),
                 });
 
-            ////Cler1/Wiz5/Pal4 - Spellcasters don't work properly yet :(
+            ////Cler1/Wiz5/Pal4 - Spellcasters combos don't work properly yet :(
             //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle,
             //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
             //    { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Wizard, DatabaseHelper.CharacterSubclassDefinitions.TraditionShockArcanist, 5),
