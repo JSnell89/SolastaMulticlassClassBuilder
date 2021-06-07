@@ -5,7 +5,7 @@
 	"Version": "0.0.2",
 	"ManagerVersion": "0.23.4",
 	"Requirements": [ "SolastaModApi" ],
-	"LoadAfter": [ "SolastaModApi" ],
+	"LoadAfter": [ "SolastaModApi", "SolastaAHBarbarianClass", "SolastaTacticianSubclass", "SolastaRageWarriorFighterSubclass", "SolastaRoyalKnightFighterSubclass" ],
 	"AssemblyName": "SolastaMulticlassClassBuilder.dll",
 	"EntryMethod": "SolastaMulticlassClassBuilder.Main.Load",
 	"Repository": "https://raw.githubusercontent.com/jsnell89/SolastaMulticlassClassBuilder/main/SolastaMulticlassClassBuilder/Repository.json",
