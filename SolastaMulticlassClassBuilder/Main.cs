@@ -7,6 +7,7 @@ using HarmonyLib;
 using I2.Loc;
 using SolastaModApi;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SolastaMulticlassClassBuilder
 {
@@ -69,76 +70,81 @@ namespace SolastaMulticlassClassBuilder
 
         internal static void ModEntryPoint()
         {
-            //Wiz2/Cler3/Wiz3/Cler2 - Spellcasters combos don't work properly yet :(
-            //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Wizard, DatabaseHelper.CharacterSubclassDefinitions.TraditionShockArcanist,
-            //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
-            //    { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Wizard, DatabaseHelper.CharacterSubclassDefinitions.TraditionShockArcanist, 1),
-            //        new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle, 2),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Wizard, DatabaseHelper.CharacterSubclassDefinitions.TraditionShockArcanist, 2),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle, 3),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Wizard, DatabaseHelper.CharacterSubclassDefinitions.TraditionShockArcanist, 3),
-            //    });
+            string assembly = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string text = System.IO.File.ReadAllText(assembly + "\\CustomMulticlassCombos.txt");
+            IEnumerable<string> multiclasses = text.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            foreach(string multiclass in multiclasses)
+            {
+                bool isFirstClass = true;
+                string customName = null;
+                CharacterClassDefinition firstClass = null;
+                CharacterSubclassDefinition firstSubclass = null;
+                IEnumerable<string> classesSubclassesAndLevels = multiclass.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+                List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>> subsequentClasses = new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>();
+                foreach (string classSubclassAndLevel in classesSubclassesAndLevels)
+                {
+                    Dictionary<string, string> keyValuePairs = classSubclassAndLevel.Split(',')
+                           .Select(value => value.Split('='))
+                           .ToDictionary(pair => pair[0], pair => pair[1]);
 
-            ////Cler2/Wiz2/Cler3/Wiz3 - Spellcasters combos don't work properly yet :(
-            //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle,
-            //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
-            //    { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle, 1),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Wizard, DatabaseHelper.CharacterSubclassDefinitions.TraditionShockArcanist, 2),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle, 3),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Wizard, DatabaseHelper.CharacterSubclassDefinitions.TraditionShockArcanist, 3),
-            //    });
+                    if(isFirstClass)
+                    {
+                        customName = keyValuePairs.GetValueSafe("CustomName");
+                        firstClass = GetClassDefinitionFromName(keyValuePairs.GetValueSafe("Class"));
+                        firstSubclass = GetSubclassDefinitionFromName(keyValuePairs.GetValueSafe("Subclass"));
+                        int levels = int.Parse(keyValuePairs.GetValueSafe("Levels"));
+                        if(levels > 1)
+                            subsequentClasses.Add(new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(firstClass, firstSubclass, levels - 1));
+                    }
+                    else 
+                        subsequentClasses.Add(CreateMulticlassTuple(keyValuePairs));
 
-            //Fighter1/Rogue9
-            //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer,
-            //       new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
-            //    { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Rogue, DatabaseHelper.CharacterSubclassDefinitions.RoguishDarkweaver, 9) });
+                    isFirstClass = false;
+                }
 
-            ////Fighter5/Rogue1/Ranger4
-            //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer,
-            //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
-            //    { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer, 4),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Rogue, DatabaseHelper.CharacterSubclassDefinitions.RoguishDarkweaver, 1),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Ranger, DatabaseHelper.CharacterSubclassDefinitions.RangerHunter, 4) });
-
-            //Fighter1/Rogue1/Fighter4/Rogue4
-            //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer,
-            //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
-            //    {
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Rogue, DatabaseHelper.CharacterSubclassDefinitions.RoguishThief, 1),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer, 4),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Rogue, DatabaseHelper.CharacterSubclassDefinitions.RoguishThief, 4) });
-
-            //Fighter1/Rogue1/Fighter4/Wizard4
-            //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer,
-            //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
-            //    {
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Rogue, DatabaseHelper.CharacterSubclassDefinitions.RoguishThief, 1),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer, 4),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Wizard, DatabaseHelper.CharacterSubclassDefinitions.TraditionShockArcanist, 4) });
-
-            ////Fighter1/Rogue1/Cler4/Fight2/Cler2
-            //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer,
-            //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
-            //    {
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Rogue, DatabaseHelper.CharacterSubclassDefinitions.RoguishThief, 1),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle, 4),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer, 2),
-            //    new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle, 2) });
-
-            //Cler8/Pal2 - Kind of works, Doesn't add Paladin spells to know spells atm but you can smite (though level 5 smites do no damage!)
-            //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle,
-            //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
-            //    {
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle, 7),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Paladin, DatabaseHelper.CharacterSubclassDefinitions.OathOfTirmar, 2),
-            //    });
-
-            ////Cler1/Wiz5/Pal4 - Spellcasters combos don't work properly yet :(
-            //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle,
-            //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
-            //    { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Wizard, DatabaseHelper.CharacterSubclassDefinitions.TraditionShockArcanist, 5),
-            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Paladin, DatabaseHelper.CharacterSubclassDefinitions.OathOfTirmar, 4) });
+                MultiClassBuilder.BuildAndAddNewMultiClassToDB(firstClass, firstSubclass, subsequentClasses, customName);
+            }
         }
+
+
+
+
+        internal static Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int> CreateMulticlassTuple(Dictionary<string, string> keyValuePairs)
+        {
+            return new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(GetClassDefinitionFromName(keyValuePairs.GetValueSafe("Class")), GetSubclassDefinitionFromName(keyValuePairs.GetValueSafe("Subclass")), int.Parse(keyValuePairs.GetValueSafe("Levels")));
+        }
+
+        public static CharacterClassDefinition GetClassDefinitionFromName(string className)
+        {
+            CharacterClassDefinition characterClass = DatabaseRepository.GetDatabase<CharacterClassDefinition>().GetAllElements()?.FirstOrDefault(c => string.Equals(c.Name, className));
+            if (characterClass == null)
+                Error("Class " + className + " not found");
+
+            return characterClass;
+        }
+
+        public static CharacterSubclassDefinition GetSubclassDefinitionFromName(string subclassName)
+        {
+            if (string.Equals(subclassName, "AHTactician"))
+                subclassName = "GambitResourcePool"; //Regret this incorrect name now :(
+
+            CharacterSubclassDefinition characterSubclass = DatabaseRepository.GetDatabase<CharacterSubclassDefinition>().GetAllElements()?.FirstOrDefault(c => string.Equals(c.Name, subclassName));
+            if (characterSubclass == null)
+                Error("Subclass " + subclassName + " not found");
+
+            return characterSubclass;
+        }
+
+
+
+        //Example of code to add multiclass:
+        //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer,
+        //           new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
+        //           { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer, 5),
+        //            new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Ranger, DatabaseHelper.CharacterSubclassDefinitions.RangerHunter, 5)},
+        //           "Mountaineer5/Hunter5");
+
+
     }
 }
 
