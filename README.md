@@ -27,40 +27,40 @@ AHBarbarianClass - Note requires the barbarian mod
 
 Subclass Names:
 Cleric:
-DomainBattle { get; }
-DomainSun { get; }
-DomainOblivion { get; }
-DomainLife { get; }
-DomainLaw { get; }
-DomainInsight { get; }
-DomainElementalLighting { get; }
-DomainElementalFire { get; }
-DomainElementalCold { get; }
+DomainBattle 
+DomainSun 
+DomainOblivion 
+DomainLife 
+DomainLaw 
+DomainInsight 
+DomainElementalLighting 
+DomainElementalFire 
+DomainElementalCold 
 
 Fighter:
-MartialSpellblade { get; }
-MartialMountaineer { get; }
-MartialChampion { get; }
+MartialSpellblade 
+MartialMountaineer 
+MartialChampion 
 AHTactician - Requires Tactician mod
 RageWarriorFighterSubclass - Requires Rage Warrior mod
 PurpleDragonKnight - Requires Royal Knight mod
 
 Paladin:
-OathOfTirmar { get; }
-OathOfTheMotherland { get; }
-OathOfDevotion { get; }
+OathOfTirmar 
+OathOfTheMotherland 
+OathOfDevotion 
 
 Ranger:
-RangerShadowTamer { get; }
-RangerMarksman { get; }
-RangerHunter { get; }
+RangerShadowTamer 
+RangerMarksman 
+RangerHunter 
 
 Rogue:
-RoguishThief { get; }
-RoguishShadowCaster { get; }
-RoguishDarkweaver { get; }
+RoguishThief 
+RoguishShadowCaster 
+RoguishDarkweaver 
 
 Wizard:
-TraditionGreenmage { get; }
-TraditionLoremaster { get; }
-TraditionShockArcanist { get; }
+TraditionGreenmage 
+TraditionLoremaster 
+TraditionShockArcanist 
