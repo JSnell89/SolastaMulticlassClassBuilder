@@ -126,12 +126,12 @@ namespace SolastaMulticlassClassBuilder
             //    new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle, 2) });
 
             //Cler8/Pal2 - Kind of works, Doesn't add Paladin spells to know spells atm but you can smite (though level 5 smites do no damage!)
-            MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle,
-                new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
-                {
-                  new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle, 7),
-                  new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Paladin, DatabaseHelper.CharacterSubclassDefinitions.OathOfTirmar, 2),
-                });
+            //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle,
+            //    new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
+            //    {
+            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle, 7),
+            //      new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Paladin, DatabaseHelper.CharacterSubclassDefinitions.OathOfTirmar, 2),
+            //    });
 
             ////Cler1/Wiz5/Pal4 - Spellcasters combos don't work properly yet :(
             //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Cleric, DatabaseHelper.CharacterSubclassDefinitions.DomainBattle,

@@ -140,17 +140,19 @@ namespace SolastaMulticlassClassBuilder
                 }
             }
             int endCasterLevel = GetCasterLevelForGivenLevel(context.CurrentClassLevel, startingClass, startingSubclass, subsequentClasses);
-            while (firstSpellCastFeature2.SlotsPerLevels.Count < 20)
-            {
-                firstSpellCastFeature2.SlotsPerLevels.Add(SpellSlotHelper.OldSpellSlots[endCasterLevel - 1]);
-                firstSpellCastFeature2.KnownCantrips.Add(SpellSlotHelper.OldKnownCantrips[endCasterLevel - 1]);
-                firstSpellCastFeature2.KnownSpells.Add(SpellSlotHelper.OldKnownSpells[endCasterLevel - 1]);
-                firstSpellCastFeature2.ScribedSpells.Add(SpellSlotHelper.OldScribedSpells[endCasterLevel - 1]);
-            }
-            SpellSlotHelper.ClearOldData();
 
-            definition.FeatureUnlocks.Add(new FeatureUnlockByLevel(firstSpellCastFeature2, levelToAddSpellCastFeature));
-               
+            if (firstSpellCastFeature2 != null)
+            {
+                while (firstSpellCastFeature2.SlotsPerLevels.Count < 20)
+                {
+                    firstSpellCastFeature2.SlotsPerLevels.Add(SpellSlotHelper.OldSpellSlots[endCasterLevel - 1]);
+                    firstSpellCastFeature2.KnownCantrips.Add(SpellSlotHelper.OldKnownCantrips[endCasterLevel - 1]);
+                    firstSpellCastFeature2.KnownSpells.Add(SpellSlotHelper.OldKnownSpells[endCasterLevel - 1]);
+                    firstSpellCastFeature2.ScribedSpells.Add(SpellSlotHelper.OldScribedSpells[endCasterLevel - 1]);
+                }
+                definition.FeatureUnlocks.Add(new FeatureUnlockByLevel(firstSpellCastFeature2, levelToAddSpellCastFeature));
+            }
+            SpellSlotHelper.ClearOldData();          
 
             var db = DatabaseRepository.GetDatabase<CharacterClassDefinition>();
             db.Add(definition);
@@ -414,6 +416,8 @@ namespace SolastaMulticlassClassBuilder
                     NumExistingRogueLevels++;
                 else if (characterClass == DatabaseHelper.CharacterClassDefinitions.Wizard)
                     NumExistingWizardLevels++;
+                else if (string.Equals(characterClass.Name, "AHBarbarianClass"))
+                    NumExistingBarbarianLevels++;
             }
 
             public int GetExistingClassLevel(CharacterClassDefinition characterClass)
@@ -430,6 +434,8 @@ namespace SolastaMulticlassClassBuilder
                     return NumExistingRogueLevels;
                 else if (characterClass == DatabaseHelper.CharacterClassDefinitions.Wizard)
                     return NumExistingWizardLevels;
+                else if (string.Equals(characterClass.Name, "AHBarbarianClass"))
+                    return NumExistingBarbarianLevels;
 
                 return -1;//Error
             }
@@ -442,6 +448,7 @@ namespace SolastaMulticlassClassBuilder
             public int NumExistingRangerLevels = 0;
             public int NumExistingRogueLevels = 0;
             public int NumExistingWizardLevels = 0;
+            public int NumExistingBarbarianLevels = 0;
         }
 
         private static List<FeatureUnlockByLevel> RogueMultiClassCustomHandledFeaturesByLevel = new List<FeatureUnlockByLevel>()

@@ -1,0 +1,6 @@
+Feature/&RogueMulticlassSneakAttackTitle Sneak attack
+Feature/&RogueMulticlassSneakAttackDescription Get a 1d6 sneak attack die when you attack with an adjacent ally or with advantage (and not disadvantage).
+Feature/&RogueMulticlassExtraSkillPointTitle Rogue Extra skill
+Feature/&RogueMulticlassExtraSkillPointDescription Gain 1 extra skill from the Rogue's skill list when multiclassing into a Rogue.
+Feature/&RangerMulticlassExtraSkillPointTitle Ranger Extra skill
+Feature/&RangerMulticlassExtraSkillPointDescription Gain 1 extra skill from the Ranger's skill list when multiclassing into a Ranger.
