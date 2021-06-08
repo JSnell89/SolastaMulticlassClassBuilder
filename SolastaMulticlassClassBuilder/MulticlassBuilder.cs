@@ -28,19 +28,11 @@ namespace SolastaMulticlassClassBuilder
             definition.SetDefaultBattleDecisions(startingClass.DefaultBattleDecisions);
             definition.SetGuid(GuidHelper.Create(MultiClassBuilderGuid, definition.GuiPresentation.Title).ToString()); //Should allow for loading the same multiclass through multiple sessions
 
-            //The multi-class won't be quite correct as certain levels will have the wrong hit die.
-            //Best way to likely do this is to use the average over all of the levels, though this does ruin front loaded hit dice multiclasses like Fighter1/Wizard9
             definition.EquipmentRows.AddRange(startingClass.EquipmentRows);
-            //Add a spellbook for Wizard Multiclasses
-            var list = new List<CharacterClassDefinition.HeroEquipmentOption>();
-            list.Add(EquipmentOptionsBuilder.Option(DatabaseHelper.ItemDefinitions.Spellbook, EquipmentDefinitions.OptionGenericItem, 1));
-            var equipmentColumn = new CharacterClassDefinition.HeroEquipmentColumn();
-            equipmentColumn.EquipmentOptions.AddRange(list);
-            var equipmentRow = new CharacterClassDefinition.HeroEquipmentRow();
-            equipmentRow.EquipmentColumns.Add(equipmentColumn);
-            definition.EquipmentRows.Add(equipmentRow);
             definition.ExpertiseAutolearnPreference.AddRange((subsequentClasses.SelectMany(c => c.Item1.ExpertiseAutolearnPreference)));
             definition.FeatAutolearnPreference.AddRange(startingClass.FeatAutolearnPreference);
+            //The multi-class won't be quite correct as certain levels will have the wrong hit die.
+            //Best way to likely do this is to use the average over all of the levels, though this does ruin front loaded hit dice multiclasses like Fighter1/Wizard9
             definition.SetHitDice(GetAverageHitDie(subsequentClasses));
             definition.SetIngredientGatheringOdds(startingClass.IngredientGatheringOdds);
             definition.SetCachedName(definition.GuiPresentation.Title);
@@ -53,30 +45,18 @@ namespace SolastaMulticlassClassBuilder
             //TODO handle Paladin lay on hands pool scaling on hero level
             //TODO Level 5 spell slot smites don't do any damage.
 
-            
-            int levelToAddSpellCastFeature = -1;
             FeatureDefinition firstSpellCastFeature = startingClass.FeatureUnlocks.FirstOrDefault(fu => fu.Level == 1 && fu.FeatureDefinition is FeatureDefinitionCastSpell)?.FeatureDefinition;
-            FeatureDefinitionCastSpell firstSpellCastFeature2 = null;
-            bool firstTimeSpellSetup = true;
+            SpellcastingFeatureHelper firstSpellCastingFeatureHelper = new SpellcastingFeatureHelper();
             if (firstSpellCastFeature != null)
             {
-                levelToAddSpellCastFeature = 1;
-                firstSpellCastFeature2 = firstSpellCastFeature as FeatureDefinitionCastSpell;
-                SpellSlotHelper.SetupOldData(firstSpellCastFeature2);
-                firstSpellCastFeature2.SlotsPerLevels.Clear();
-                firstSpellCastFeature2.KnownCantrips.Clear();
-                firstSpellCastFeature2.KnownSpells.Clear();
-                firstSpellCastFeature2.ScribedSpells.Clear();
-
-                firstSpellCastFeature2.SlotsPerLevels.Add(SpellSlotHelper.OldSpellSlots[0]);
-                firstSpellCastFeature2.KnownCantrips.Add(SpellSlotHelper.OldKnownCantrips[0]);
-                firstSpellCastFeature2.KnownSpells.Add(SpellSlotHelper.OldKnownSpells[0]);
-                firstSpellCastFeature2.ScribedSpells.Add(SpellSlotHelper.OldScribedSpells[0]);
-
-                firstTimeSpellSetup = false;
+                //firstSpellCastingClass = startingClass;
+                firstSpellCastingFeatureHelper.SpellcastingClass = startingClass;
+                firstSpellCastingFeatureHelper.LevelToAddSpellcastingFeature = 1;
+                firstSpellCastingFeatureHelper.FirstTimeSetup(firstSpellCastFeature as FeatureDefinitionCastSpell, GetCasterTypeForSingleLevelOfClass(startingClass, startingSubclass));
+                firstSpellCastingFeatureHelper.AddFeaturesForCasterLevel(1);
             }
 
-            List<int> emptySpellSlotDefinition = new List<int>() { 0, 0, 0, 0, 0 };
+            
 
             context.CurrentClassLevel = 2;
             context.IncrementExistingClassLevel(startingClass);
@@ -97,41 +77,27 @@ namespace SolastaMulticlassClassBuilder
 
                     if (firstSpellCastFeature != null)
                     {
-                        int casterLevel = GetCasterLevelForGivenLevel(context.CurrentClassLevel, startingClass, startingSubclass, subsequentClasses);
+                        double casterLevel = GetCasterLevelForGivenLevel(context.CurrentClassLevel, startingClass, startingSubclass, subsequentClasses);
 
-                        if (firstTimeSpellSetup)
+                        if (!firstSpellCastingFeatureHelper.IsSetup)
                         {
-                            firstSpellCastFeature2 = firstSpellCastFeature as FeatureDefinitionCastSpell;
-                            SpellSlotHelper.SetupOldData(firstSpellCastFeature2);
-                            firstSpellCastFeature2.SlotsPerLevels.Clear();
-                            firstSpellCastFeature2.KnownCantrips.Clear();
-                            firstSpellCastFeature2.KnownSpells.Clear();
-                            firstSpellCastFeature2.ScribedSpells.Clear();
+                            firstSpellCastingFeatureHelper.FirstTimeSetup(firstSpellCastFeature as FeatureDefinitionCastSpell, GetCasterTypeForSingleLevelOfClass(classAndLevels.Item1, classAndLevels.Item2));
 
                             //If we already have a spellcasting feature then don't bother adding empty levels
-                            if (levelToAddSpellCastFeature < 1)
+                            if (firstSpellCastingFeatureHelper.LevelToAddSpellcastingFeature < 1)
                             {
                                 //Add empty spell slots for all levels that didn't have caster levels
                                 for (int j = 1; j < context.CurrentClassLevel; j++)
                                 {
-                                    firstSpellCastFeature2.SlotsPerLevels.Add(new FeatureDefinitionCastSpell.SlotsByLevelDuplet() { Level = j, Slots = emptySpellSlotDefinition });
-                                    firstSpellCastFeature2.KnownCantrips.Add(0);
-                                    firstSpellCastFeature2.KnownSpells.Add(0);
-                                    firstSpellCastFeature2.ScribedSpells.Add(0);
+                                    firstSpellCastingFeatureHelper.AddEmptySpellcastingLevel(j);
                                 }
                             }
-
-                            firstTimeSpellSetup = false;
                         }
 
-                        firstSpellCastFeature2.SlotsPerLevels.Add(SpellSlotHelper.OldSpellSlots[casterLevel - 1]);
-                        firstSpellCastFeature2.KnownCantrips.Add(SpellSlotHelper.OldKnownCantrips[casterLevel - 1]);
-                        firstSpellCastFeature2.KnownSpells.Add(SpellSlotHelper.OldKnownSpells[casterLevel - 1]);
-                        firstSpellCastFeature2.ScribedSpells.Add(SpellSlotHelper.OldScribedSpells[casterLevel - 1]);
+                        firstSpellCastingFeatureHelper.AddFeaturesForCasterLevel(casterLevel);
 
-
-                        if (levelToAddSpellCastFeature < 1)
-                            levelToAddSpellCastFeature = context.CurrentClassLevel;
+                        if (firstSpellCastingFeatureHelper.LevelToAddSpellcastingFeature < 1)
+                            firstSpellCastingFeatureHelper.LevelToAddSpellcastingFeature = context.CurrentClassLevel;
                     }
                     
 
@@ -139,20 +105,33 @@ namespace SolastaMulticlassClassBuilder
                     context.IncrementExistingClassLevel(classAndLevels.Item1);
                 }
             }
-            int endCasterLevel = GetCasterLevelForGivenLevel(context.CurrentClassLevel, startingClass, startingSubclass, subsequentClasses);
+            double endCasterLevel = GetCasterLevelForGivenLevel(context.CurrentClassLevel, startingClass, startingSubclass, subsequentClasses);
 
-            if (firstSpellCastFeature2 != null)
+            if (firstSpellCastingFeatureHelper.IsSetup)
             {
-                while (firstSpellCastFeature2.SlotsPerLevels.Count < 20)
+                //Spellcasting features seem to need to go to 20 not matter what.
+                while (firstSpellCastingFeatureHelper.CastSpellDefinition.SlotsPerLevels.Count < 20)
+                    firstSpellCastingFeatureHelper.AddFeaturesForCasterLevel(endCasterLevel);
+
+                //If we get a wizard not as the initial class, add a spellbook otherwise their spells added at level up don't get put in anything/don't save
+                if (!string.Equals(startingClass.Name, "Wizard") && string.Equals(firstSpellCastingFeatureHelper.CastSpellDefinition.Name, DatabaseHelper.FeatureDefinitionCastSpells.CastSpellWizard.Name))
                 {
-                    firstSpellCastFeature2.SlotsPerLevels.Add(SpellSlotHelper.OldSpellSlots[endCasterLevel - 1]);
-                    firstSpellCastFeature2.KnownCantrips.Add(SpellSlotHelper.OldKnownCantrips[endCasterLevel - 1]);
-                    firstSpellCastFeature2.KnownSpells.Add(SpellSlotHelper.OldKnownSpells[endCasterLevel - 1]);
-                    firstSpellCastFeature2.ScribedSpells.Add(SpellSlotHelper.OldScribedSpells[endCasterLevel - 1]);
+                    //Add a spellbook for Wizard Multiclasses, make sure not to add a spellbook to an starting wizard, it messes things up.
+                    var list = new List<CharacterClassDefinition.HeroEquipmentOption>();
+                    list.Add(EquipmentOptionsBuilder.Option(DatabaseHelper.ItemDefinitions.Spellbook, EquipmentDefinitions.OptionGenericItem, 1));
+                    var equipmentColumn = new CharacterClassDefinition.HeroEquipmentColumn();
+                    equipmentColumn.EquipmentOptions.AddRange(list);
+                    var equipmentRow = new CharacterClassDefinition.HeroEquipmentRow();
+                    equipmentRow.EquipmentColumns.Add(equipmentColumn);
+                    definition.EquipmentRows.Add(equipmentRow);
                 }
-                definition.FeatureUnlocks.Add(new FeatureUnlockByLevel(firstSpellCastFeature2, levelToAddSpellCastFeature));
+
+                //Put the spellcasting feature on the class for the first one.
+                //Perhaps we can get a second one by putting it on the subclass?
+                firstSpellCastingFeatureHelper.CastSpellDefinition.SetSpellCastingOrigin(FeatureDefinitionCastSpell.CastingOrigin.Class);
+
+                definition.FeatureUnlocks.Add(new FeatureUnlockByLevel(firstSpellCastingFeatureHelper.CastSpellDefinition, firstSpellCastingFeatureHelper.LevelToAddSpellcastingFeature));
             }
-            SpellSlotHelper.ClearOldData();          
 
             var db = DatabaseRepository.GetDatabase<CharacterClassDefinition>();
             db.Add(definition);
@@ -215,10 +194,10 @@ namespace SolastaMulticlassClassBuilder
             return (RuleDefinitions.DieType)avgHitDieEnumValue;
         }
 
-        private static int GetCasterLevelForGivenLevel(int currentLevel, CharacterClassDefinition startingClass, CharacterSubclassDefinition startingSubclass, IEnumerable<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>> subsequentClasses)
+        private static double GetCasterLevelForGivenLevel(int currentLevel, CharacterClassDefinition startingClass, CharacterSubclassDefinition startingSubclass, IEnumerable<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>> subsequentClasses)
         {
             var context = new CasterLevelContext();
-            context.IncrementCasterLevel(GetCasterLevelForSingleLevelOfClass(startingClass, startingSubclass));
+            context.IncrementCasterLevel(GetCasterTypeForSingleLevelOfClass(startingClass, startingSubclass));
 
             int numLevelsRemaining = currentLevel -1;
             foreach(var subseqeuntClass in subsequentClasses)
@@ -226,7 +205,7 @@ namespace SolastaMulticlassClassBuilder
                 int numLevelsToUseFromNextClass = Math.Min(numLevelsRemaining, subseqeuntClass.Item3);
                 for (int i = numLevelsToUseFromNextClass; i > 0; i--)
                 {
-                    context.IncrementCasterLevel(GetCasterLevelForSingleLevelOfClass(subseqeuntClass.Item1, subseqeuntClass.Item2));
+                    context.IncrementCasterLevel(GetCasterTypeForSingleLevelOfClass(subseqeuntClass.Item1, subseqeuntClass.Item2));
                     numLevelsRemaining--;
                 }
             }
@@ -234,7 +213,7 @@ namespace SolastaMulticlassClassBuilder
             return context.GetCasterLevel();
         }
 
-        private static eAHCasterType GetCasterLevelForSingleLevelOfClass(CharacterClassDefinition charClass, CharacterSubclassDefinition subclass)
+        private static eAHCasterType GetCasterTypeForSingleLevelOfClass(CharacterClassDefinition charClass, CharacterSubclassDefinition subclass)
         {
             if (FullCasterList.Contains(charClass))
                 return eAHCasterType.Full;
@@ -266,21 +245,21 @@ namespace SolastaMulticlassClassBuilder
                     NumFullLevels++;
             }
 
-            public int GetCasterLevel()
+            public double GetCasterLevel()
             {
-                int casterLevel = 0;
+                double casterLevel = 0;
                 if (NumOneThirdLevels >= 3)
-                    casterLevel += NumOneThirdLevels/3;
+                    casterLevel += NumOneThirdLevels/3.0;
                 if (NumHalfLevels >= 2)
-                    casterLevel += NumHalfLevels/2;
+                    casterLevel += NumHalfLevels/2.0;
                 casterLevel += NumFullLevels;
 
                 return casterLevel;
             }
 
-            int NumOneThirdLevels = 0;
-            int NumHalfLevels = 0;
-            int NumFullLevels = 0;
+            double NumOneThirdLevels = 0;
+            double NumHalfLevels = 0;
+            double NumFullLevels = 0;
         }
 
         public enum eAHCasterType
@@ -291,48 +270,76 @@ namespace SolastaMulticlassClassBuilder
             Full
         };
 
-        public static class SpellSlotHelper
+        public class SpellcastingFeatureHelper
         {
-            public static List<FeatureDefinitionCastSpell.SlotsByLevelDuplet> OldSpellSlots = new List<FeatureDefinitionCastSpell.SlotsByLevelDuplet>();
-            public static List<int> OldKnownCantrips = new List<int>();
-            public static List<int> OldKnownSpells = new List<int>();
-            public static List<int> OldScribedSpells = new List<int>();
+            public List<FeatureDefinitionCastSpell.SlotsByLevelDuplet> OldSpellSlots = new List<FeatureDefinitionCastSpell.SlotsByLevelDuplet>();
+            public List<int> OldKnownCantrips = new List<int>();
+            public List<int> OldKnownSpells = new List<int>();
+            public List<int> OldScribedSpells = new List<int>();
+            public eAHCasterType CasterType = eAHCasterType.None;
+            public FeatureDefinitionCastSpell CastSpellDefinition;
 
-            public static void SetupOldData(FeatureDefinitionCastSpell castSpellDefinition)
+            public void FirstTimeSetup(FeatureDefinitionCastSpell castSpellDefinition, eAHCasterType casterType)
             {
-                OldSpellSlots.AddRange(castSpellDefinition.SlotsPerLevels);
-                OldKnownCantrips.AddRange(castSpellDefinition.KnownCantrips);
-                OldKnownSpells.AddRange(castSpellDefinition.KnownSpells);
-                OldScribedSpells.AddRange(castSpellDefinition.ScribedSpells);
+                if (!IsSetup)
+                {
+                    CastSpellDefinition = castSpellDefinition;
+                    SetupOldData(casterType);
+                    ClearCastSpellFeature();
+                    IsSetup = true;
+                }
             }
 
-            public static void ClearOldData()
+            private void SetupOldData(eAHCasterType casterType)
             {
-                OldSpellSlots.Clear();
-                OldKnownCantrips.Clear();
-                OldKnownSpells.Clear();
-                OldScribedSpells.Clear();
+                OldSpellSlots.AddRange(CastSpellDefinition.SlotsPerLevels);
+                OldKnownCantrips.AddRange(CastSpellDefinition.KnownCantrips);
+                OldKnownSpells.AddRange(CastSpellDefinition.KnownSpells);
+                OldScribedSpells.AddRange(CastSpellDefinition.ScribedSpells);
+                CasterType = casterType;
             }
 
-            //public static List<int> GetSlotsForCasterLevel(int casterLevel)
-            //{
-            //    return SpellSlotsByCasterLevel[casterLevel - 1].Slots;
-            //}
+            private void ClearCastSpellFeature()
+            {
+                CastSpellDefinition.SlotsPerLevels.Clear();
+                CastSpellDefinition.KnownCantrips.Clear();
+                CastSpellDefinition.KnownSpells.Clear();
+                CastSpellDefinition.ScribedSpells.Clear();
+            }
 
-            //public static FeatureDefinitionCastSpell.SlotsByLevelDuplet[] SpellSlotsByCasterLevel = new FeatureDefinitionCastSpell.SlotsByLevelDuplet[]
-            //{
-            //    new FeatureDefinitionCastSpell.SlotsByLevelDuplet() { Level = 1, Slots = { 2,0,0,0,0 }},
-            //    new FeatureDefinitionCastSpell.SlotsByLevelDuplet() { Level = 2, Slots = { 3,0,0,0,0 }},
-            //    new FeatureDefinitionCastSpell.SlotsByLevelDuplet() { Level = 3, Slots = { 4,2,0,0,0 }},
-            //    new FeatureDefinitionCastSpell.SlotsByLevelDuplet() { Level = 4, Slots = { 4,3,0,0,0 }},
-            //    new FeatureDefinitionCastSpell.SlotsByLevelDuplet() { Level = 5, Slots = { 4,3,2,0,0 }},
-            //    new FeatureDefinitionCastSpell.SlotsByLevelDuplet() { Level = 6, Slots = { 4,3,3,0,0 }},
-            //    new FeatureDefinitionCastSpell.SlotsByLevelDuplet() { Level = 7, Slots = { 4,3,3,1,0 }},
-            //    new FeatureDefinitionCastSpell.SlotsByLevelDuplet() { Level = 8, Slots = { 4,3,3,2,0 }},
-            //    new FeatureDefinitionCastSpell.SlotsByLevelDuplet() { Level = 9, Slots = { 4,3,3,2,1 }},
-            //    new FeatureDefinitionCastSpell.SlotsByLevelDuplet() { Level = 10, Slots = { 4,3,3,2,2 }},
-            //    //We could do higher levels but not necessary yet/not done in Solasta either
-            //};
+            public void AddFeaturesForCasterLevel(double casterLevel)
+            {
+                CastSpellDefinition.SlotsPerLevels.Add(OldSpellSlots[(int)(casterLevel * GetCasterLevelMultiplier()) - 1]); //Example Level 2 Paladin - casterLevel (1), Multiplier (2), so 1*2 = 2, -1 since the array starts at 0.  So we get the spell info from level 2 Paladin (index 1).
+                CastSpellDefinition.KnownCantrips.Add(OldKnownCantrips[(int)(casterLevel * GetCasterLevelMultiplier()) - 1]); //Example 2 Level 5 Paladin, Level 3 Spellblade - CasterLevel (2.5+1) Multiplier (2) = 3.5*2 = 7, -1 since array starts at 0.  So we get spell info from level 7 paladin (index 6).
+                CastSpellDefinition.KnownSpells.Add(OldKnownSpells[(int)(casterLevel * GetCasterLevelMultiplier()) - 1]);
+                CastSpellDefinition.ScribedSpells.Add(OldScribedSpells[(int)(casterLevel * GetCasterLevelMultiplier()) - 1]);
+            }
+
+            public void AddEmptySpellcastingLevel(int level)
+            {
+                CastSpellDefinition.SlotsPerLevels.Add(new FeatureDefinitionCastSpell.SlotsByLevelDuplet() { Level = level, Slots = EmptySpellSlotDefinition });
+                CastSpellDefinition.KnownCantrips.Add(0);
+                CastSpellDefinition.KnownSpells.Add(0);
+                CastSpellDefinition.ScribedSpells.Add(0);
+            }
+
+            public int GetCasterLevelMultiplier()
+            {
+                if (CasterType == eAHCasterType.Full)
+                    return 1;
+                else if (CasterType == eAHCasterType.Half)
+                    return 2;
+                else if (CasterType == eAHCasterType.OneThird)
+                    return 3;
+
+                return 0;
+            }
+
+            public CharacterClassDefinition SpellcastingClass { get; set; }
+            public int LevelToAddSpellcastingFeature { get; set; }
+            public bool IsSetup { get; private set; } = false;
+
+            private static readonly List<int> EmptySpellSlotDefinition = new List<int>() { 0, 0, 0, 0, 0 };
         }
 
         private static readonly CharacterClassDefinition[] FullCasterList = new CharacterClassDefinition[]
@@ -394,61 +401,29 @@ namespace SolastaMulticlassClassBuilder
             {
                 NumTotalClassLevels = 0;
                 CurrentClassLevel = 1;
-                NumExistingClericLevels = 0;
-                NumExistingFighterLevels = 0;
-                NumExistingPaladinLevels = 0;
-                NumExistingRangerLevels = 0;
-                NumExistingRogueLevels = 0;
-                NumExistingWizardLevels = 0;
+                ExistingClassesAndLevels.Clear();
             }
 
             public void IncrementExistingClassLevel(CharacterClassDefinition characterClass)
             {
-                if (characterClass == DatabaseHelper.CharacterClassDefinitions.Cleric)
-                    NumExistingClericLevels++;
-                else if (characterClass == DatabaseHelper.CharacterClassDefinitions.Fighter)
-                    NumExistingFighterLevels++;
-                else if (characterClass == DatabaseHelper.CharacterClassDefinitions.Paladin)
-                    NumExistingPaladinLevels++;
-                else if (characterClass == DatabaseHelper.CharacterClassDefinitions.Ranger)
-                    NumExistingRangerLevels++;
-                else if (characterClass == DatabaseHelper.CharacterClassDefinitions.Rogue)
-                    NumExistingRogueLevels++;
-                else if (characterClass == DatabaseHelper.CharacterClassDefinitions.Wizard)
-                    NumExistingWizardLevels++;
-                else if (string.Equals(characterClass.Name, "AHBarbarianClass"))
-                    NumExistingBarbarianLevels++;
+                if (ExistingClassesAndLevels.ContainsKey(characterClass.Name))
+                    ExistingClassesAndLevels[characterClass.Name]++;
+                else
+                    ExistingClassesAndLevels.Add(characterClass.Name, 1);
             }
 
             public int GetExistingClassLevel(CharacterClassDefinition characterClass)
             {
-                if (characterClass == DatabaseHelper.CharacterClassDefinitions.Cleric)
-                    return NumExistingClericLevels;
-                else if (characterClass == DatabaseHelper.CharacterClassDefinitions.Fighter)
-                    return NumExistingFighterLevels;
-                else if (characterClass == DatabaseHelper.CharacterClassDefinitions.Paladin)
-                    return NumExistingPaladinLevels;
-                else if (characterClass == DatabaseHelper.CharacterClassDefinitions.Ranger)
-                    return NumExistingRangerLevels;
-                else if (characterClass == DatabaseHelper.CharacterClassDefinitions.Rogue)
-                    return NumExistingRogueLevels;
-                else if (characterClass == DatabaseHelper.CharacterClassDefinitions.Wizard)
-                    return NumExistingWizardLevels;
-                else if (string.Equals(characterClass.Name, "AHBarbarianClass"))
-                    return NumExistingBarbarianLevels;
-
-                return -1;//Error
+                if (ExistingClassesAndLevels.ContainsKey(characterClass.Name))
+                    return ExistingClassesAndLevels[characterClass.Name];
+                else
+                    return 0;
             }
+
+            public Dictionary<string, int> ExistingClassesAndLevels = new Dictionary<string, int>();
 
             public int NumTotalClassLevels = 0;
             public int CurrentClassLevel = 1;
-            public int NumExistingClericLevels = 0;
-            public int NumExistingFighterLevels = 0;
-            public int NumExistingPaladinLevels = 0;
-            public int NumExistingRangerLevels = 0;
-            public int NumExistingRogueLevels = 0;
-            public int NumExistingWizardLevels = 0;
-            public int NumExistingBarbarianLevels = 0;
         }
 
         private static List<FeatureUnlockByLevel> RogueMultiClassCustomHandledFeaturesByLevel = new List<FeatureUnlockByLevel>()

@@ -140,7 +140,7 @@ namespace SolastaMulticlassClassBuilder
         //Example of code to add multiclass:
         //MultiClassBuilder.BuildAndAddNewMultiClassToDB(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer,
         //           new List<Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>>()
-        //           { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer, 5),
+        //           { new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Fighter, DatabaseHelper.CharacterSubclassDefinitions.MartialMountaineer, 4),
         //            new Tuple<CharacterClassDefinition, CharacterSubclassDefinition, int>(DatabaseHelper.CharacterClassDefinitions.Ranger, DatabaseHelper.CharacterSubclassDefinitions.RangerHunter, 5)},
         //           "Mountaineer5/Hunter5");
 

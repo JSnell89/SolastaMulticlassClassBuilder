@@ -1,7 +1,5 @@
-CustomName=A custom name for my Mountaineer1/Darkweaver9 class!,Class=Fighter,Subclass=MartialMountaineer,Levels=1;Class=Rogue,Subclass=RoguishDarkweaver,Levels=9;
-Class=Fighter,Subclass=MartialMountaineer,Levels=1;Class=Wizard,Subclass=TraditionShockArcanist,Levels=9;
-Class=Fighter,Subclass=MartialMountaineer,Levels=1;Class=Wizard,Subclass=TraditionGreenmage,Levels=9;
+Class=Fighter,Subclass=MartialSpellblade,Levels=10;
+Class=Wizard,Subclass=TraditionShockArcanist,Levels=10;
+Class=Paladin,Subclass=OathOfTheMotherland,Levels=10;
 Class=Fighter,Subclass=MartialMountaineer,Levels=5;Class=Ranger,Subclass=RangerHunter,Levels=5;
-Class=Ranger,Subclass=RangerHunter,Levels=5;Class=Rogue,Subclass=RoguishDarkweaver,Levels=5;
-Class=Ranger,Subclass=RangerHunter,Levels=5;Class=Rogue,Subclass=RoguishDarkweaver,Levels=3;Class=Ranger,Subclass=RangerHunter,Levels=2;
-CustomName=Ice Fighter 5 and Hunter Rogue 5,Class=Fighter,Subclass=DomainElementalCold,Levels=5;Class=Rogue,Subclass=RangerHunter,Levels=5;
+Class=Fighter,Subclass=MartialMountaineer,Levels=1;Class=Wizard,Subclass=TraditionShockArcanist,Levels=9;
