@@ -2,7 +2,7 @@
 	"Id": "SolastaMulticlassClassBuilder",
 	"DisplayName": "SolastaMulticlassClassBuilder",
 	"Author": "jsnell89",
-	"Version": "0.0.3",
+	"Version": "0.0.4",
 	"ManagerVersion": "0.23.4",
 	"Requirements": [ "SolastaModApi" ],
 	"LoadAfter": [ "SolastaModApi", "SolastaAHBarbarianClass", "SolastaTacticianSubclass", "SolastaRageWarriorFighterSubclass", "SolastaRoyalKnightFighterSubclass" ],
